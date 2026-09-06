@@ -4,6 +4,13 @@ export class Renderer {
   constructor(canvas) {
     this.canvas = canvas; this.ctx = canvas.getContext('2d');
     this.arena = new Image(); this.arena.src = new URL('../public/assets/arena.png', import.meta.url).href;
+    this.sprites = Object.fromEntries(Object.entries({
+      player: 'player-chibi.png', basic: 'basic-enemy-chibi.png', brute: 'brute-chibi.png',
+      boss: 'boss-chibi.png', projectile: 'projectile-chibi.png'
+    }).map(([name, file]) => {
+      const image = new Image(); image.src = new URL(`../public/assets/${file}`, import.meta.url).href;
+      return [name, image];
+    }));
     this.reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.resize();
   }
@@ -48,17 +55,25 @@ export class Renderer {
   }
   ellipse(x, y, rx, ry, color) { const c = this.ctx; c.fillStyle = color; c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); c.fill(); }
   circle(x, y, radius, fill, stroke) { const c = this.ctx; c.beginPath(); c.arc(x, y, radius, 0, Math.PI * 2); if (fill) { c.fillStyle = fill; c.fill(); } if (stroke) { c.strokeStyle = stroke; c.stroke(); } }
+  drawChibi(sprite, x, groundY, size) {
+    if (!sprite?.complete || !sprite.naturalWidth) return false;
+    this.ctx.drawImage(sprite, x - size / 2, groundY - size, size, size);
+    return true;
+  }
   player(p, now, game) {
     const c = this.ctx; const bob = game.state === 'playing' && !this.reducedMotion ? Math.sin(now * 12) * 1.1 : 0;
     this.ellipse(p.x, p.y + 15, 18, 8, '#0007');
     if (p.invincible > 0) { c.globalAlpha = .5 + Math.sin(now * 32) * .2; this.circle(p.x, p.y, 25, '#8ef8c418', '#a9ffd09c'); c.globalAlpha = 1; }
+    const hasSprite = this.drawChibi(this.sprites.player, p.x, p.y + bob + 29, 60);
     c.save(); c.translate(p.x, p.y + bob);
-    c.lineWidth = 4; c.strokeStyle = '#172b32'; c.fillStyle = '#3a5c64'; c.beginPath(); c.roundRect(-11, 5, 8, 13, 3); c.roundRect(3, 5, 8, 13, 3); c.fill(); c.stroke();
-    c.fillStyle = '#80b9ad'; c.beginPath(); c.roundRect(-14, -9, 28, 24, 8); c.fill(); c.stroke();
-    this.ellipse(-14, 0, 5, 9, '#416b6c'); this.ellipse(14, 0, 5, 9, '#416b6c');
-    c.fillStyle = '#d5e0cc'; c.beginPath(); c.roundRect(-11, -19, 22, 21, 8); c.fill(); c.stroke();
-    c.fillStyle = '#10343e'; c.beginPath(); c.roundRect(-9, -13, 18, 8, 3); c.fill(); c.fillStyle = '#9bfff0'; c.fillRect(-6, -11, 12, 3);
-    c.fillStyle = '#dbf7cf'; c.fillRect(-3, 4, 6, 4);
+    if (!hasSprite) {
+      c.lineWidth = 4; c.strokeStyle = '#172b32'; c.fillStyle = '#3a5c64'; c.beginPath(); c.roundRect(-11, 5, 8, 13, 3); c.roundRect(3, 5, 8, 13, 3); c.fill(); c.stroke();
+      c.fillStyle = '#80b9ad'; c.beginPath(); c.roundRect(-14, -9, 28, 24, 8); c.fill(); c.stroke();
+      this.ellipse(-14, 0, 5, 9, '#416b6c'); this.ellipse(14, 0, 5, 9, '#416b6c');
+      c.fillStyle = '#d5e0cc'; c.beginPath(); c.roundRect(-11, -19, 22, 21, 8); c.fill(); c.stroke();
+      c.fillStyle = '#10343e'; c.beginPath(); c.roundRect(-9, -13, 18, 8, 3); c.fill(); c.fillStyle = '#9bfff0'; c.fillRect(-6, -11, 12, 3);
+      c.fillStyle = '#dbf7cf'; c.fillRect(-3, 4, 6, 4);
+    }
     c.rotate(Math.atan2(p.dy, p.dx)); c.fillStyle = '#193440'; c.beginPath(); c.roundRect(9, 3, 21, 8, 3); c.fill(); c.fillStyle = '#8ef8c4'; c.fillRect(26, 4, 5, 5); c.restore();
     const orbit = game.weapons.orbit;
     if (orbit) {
@@ -74,21 +89,23 @@ export class Renderer {
     if (e.windup > 0) { c.strokeStyle = '#ff8c7488'; c.setLineDash([6, 6]); c.beginPath(); c.moveTo(0, 0); c.lineTo(e.chargeX * 200, e.chargeY * 200); c.stroke(); c.setLineDash([]); this.circle(0, 0, r + 7, null, '#ffad8f'); }
     const color = e.flash > 0 ? '#ffffff' : e.slow > 0 ? '#8cdef3' : e.color;
     if (e.elite || e.type === 'boss') { c.lineWidth = 1.5; this.circle(0, 0, r + 9, null, '#efc58899'); }
-    if (e.type === 'skitter' || e.type === 'charger') {
+    const sprite = e.type === 'boss' ? this.sprites.boss : e.type === 'brute' ? this.sprites.brute : this.sprites.basic;
+    const hasSprite = this.drawChibi(sprite, 0, r * 1.05, r * 2.85);
+    if (!hasSprite && (e.type === 'skitter' || e.type === 'charger')) {
       c.strokeStyle = '#543e30'; c.lineWidth = 3;
       for (let i = -1; i <= 1; i++) { c.beginPath(); c.moveTo(-r * .5, i * 6); c.lineTo(-r - 5, i * 8 + Math.sin(e.phase) * 3); c.moveTo(r * .5, i * 6); c.lineTo(r + 5, i * 8 - Math.sin(e.phase) * 3); c.stroke(); }
       c.fillStyle = color; c.beginPath(); c.moveTo(0, -r * 1.1); c.lineTo(r, r * .25); c.lineTo(r * .5, r); c.lineTo(-r * .5, r); c.lineTo(-r, r * .25); c.closePath(); c.fill(); c.stroke();
-    } else if (e.type === 'wisp') {
+    } else if (!hasSprite && e.type === 'wisp') {
       c.globalAlpha = .75; this.circle(0, 0, r + 5, '#97c5ff1a'); c.fillStyle = color; c.beginPath(); c.moveTo(0, -r); c.quadraticCurveTo(r * 1.7, 0, r * .5, r); c.lineTo(0, r * .5); c.lineTo(-r * .6, r * 1.25); c.quadraticCurveTo(-r * 1.5, 0, 0, -r); c.fill(); c.globalAlpha = 1;
-    } else if (e.type === 'splitter' || e.type === 'spitter') {
+    } else if (!hasSprite && (e.type === 'splitter' || e.type === 'spitter')) {
       for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; this.circle(Math.cos(a) * r * .65, Math.sin(a) * r * .65, r * .48, color, '#214944'); }
       this.circle(0, 0, r * .6, '#375e50'); this.circle(0, -2, r * .3, color);
-    } else {
+    } else if (!hasSprite) {
       this.ellipse(-r * .9, r * .12, r * .34, r * .6, color); this.ellipse(r * .9, r * .12, r * .34, r * .6, color);
       c.fillStyle = color; c.strokeStyle = '#283930'; c.beginPath(); c.roundRect(-r * .78, -r * .75, r * 1.56, r * 1.7, r * .4); c.fill(); c.stroke();
       if (e.type === 'brute' || e.type === 'boss') { c.fillStyle = '#49374a'; c.beginPath(); c.moveTo(-r * .8, -r * .1); c.lineTo(-r * .4, -r * 1.3); c.lineTo(0, -r * .7); c.lineTo(r * .4, -r * 1.3); c.lineTo(r * .8, -r * .1); c.fill(); c.fillStyle = '#49374a88'; c.fillRect(-r * .6, r * .3, r * 1.2, r * .22); }
     }
-    c.fillStyle = '#1a2826'; c.fillRect(-r * .47, -r * .2, r * .33, r * .24); c.fillRect(r * .15, -r * .2, r * .33, r * .24); c.fillStyle = e.type === 'boss' ? '#fff9d4' : '#fcf8b1'; c.fillRect(-r * .4, -r * .17, Math.max(2, r * .17), Math.max(2, r * .12)); c.fillRect(r * .2, -r * .17, Math.max(2, r * .17), Math.max(2, r * .12));
+    if (!hasSprite) { c.fillStyle = '#1a2826'; c.fillRect(-r * .47, -r * .2, r * .33, r * .24); c.fillRect(r * .15, -r * .2, r * .33, r * .24); c.fillStyle = e.type === 'boss' ? '#fff9d4' : '#fcf8b1'; c.fillRect(-r * .4, -r * .17, Math.max(2, r * .17), Math.max(2, r * .12)); c.fillRect(r * .2, -r * .17, Math.max(2, r * .17), Math.max(2, r * .12)); }
     if (e.tier > 0) { c.strokeStyle = ['#91c67b', '#e2ca89', '#eda28e', '#e7a0d5'][e.tier]; c.lineWidth = 2; c.beginPath(); c.arc(0, 0, r + 4, -.9, -.9 + e.tier * .7); c.stroke(); }
     if (e.hp < e.maxHp && e.type !== 'boss') { c.fillStyle = '#102423'; c.fillRect(-r, -r - 12, r * 2, 3); c.fillStyle = '#e2b895'; c.fillRect(-r, -r - 12, r * 2 * Math.max(0, e.hp / e.maxHp), 3); }
     c.restore();
@@ -104,6 +121,7 @@ export class Renderer {
     const c = this.ctx;
     if (shot.kind === 'seed') { const h = Math.sin((1 - shot.life / shot.maxLife) * Math.PI) * 65; this.circle(shot.tx, shot.ty, shot.radius, '#ffb88d0a', '#ffb88d44'); this.circle(shot.x, shot.y - h, 6, '#ffe0a8'); return; }
     if (shot.kind === 'hostile') { this.circle(shot.x, shot.y, shot.radius + 3, '#ff7e7422'); this.circle(shot.x, shot.y, shot.radius, '#ff9e77', '#ffd6aa'); return; }
+    if (this.sprites.projectile?.complete && this.sprites.projectile.naturalWidth) { const size = Math.max(17, shot.radius * 5); c.save(); c.translate(shot.x, shot.y); c.rotate(Math.atan2(shot.vy, shot.vx)); c.drawImage(this.sprites.projectile, -size / 2, -size / 2, size, size); c.restore(); return; }
     c.strokeStyle = '#84f5c97c'; c.lineWidth = 4; c.beginPath(); c.moveTo(shot.x, shot.y); c.lineTo(shot.x - shot.vx * .032, shot.y - shot.vy * .032); c.stroke(); this.circle(shot.x, shot.y, 3, '#dcffdf');
   }
   effect(fx) {
