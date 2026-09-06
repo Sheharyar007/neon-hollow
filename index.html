@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1417">
+  <meta name="description" content="Neon Hollow — an original five-minute survival game. Build your arsenal, outmaneuver the horde, and make it to extraction.">
+  <title>Neon Hollow — Survive the signal</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%237cf7c5'/%3E%3Cpath d='M8 24V8h5l6 10V8h5v16h-5L13 14v10' fill='%230b1417'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./src/main.js"></script>
+</head>
+<body>
+  <main class="app">
+    <header class="masthead">
+      <a class="brand" href="./" aria-label="Neon Hollow home"><span class="brandmark" aria-hidden="true">N</span><span>NEON HOLLOW<small>FIELD OPERATIONS / 07</small></span></a>
+      <div class="header-center"><i></i> SINGLE-PLAYER SURVIVAL</div>
+      <div class="tools"><button id="sound" class="icon-button" aria-label="Enable sound" aria-pressed="false">♪ <span>Sound off</span></button><button id="pause" class="icon-button" aria-label="Pause game" disabled>Ⅱ <span>Pause</span></button></div>
+    </header>
+    <section class="arena" aria-label="Survival arena">
+      <canvas id="game" tabindex="0" aria-label="Neon Hollow game. Move with WASD or arrow keys. Weapons fire automatically. Space to dash. P or Escape to pause."></canvas>
+      <div class="hud" id="hud">
+        <div class="vitals"><div class="hud-caption"><span>♥ INTEGRITY</span><strong id="health-label">100 / 100</strong></div><div class="meter health"><i id="health-bar"></i></div></div>
+        <div class="clock"><strong id="timer">00:00</strong><span id="wave">WAVE 01 / 10</span></div>
+        <div class="kill-counter"><span>ELIMINATED</span><strong id="kills">0</strong></div>
+      </div>
+      <div class="xp-hud"><span id="level">LV 01</span><div class="meter xp"><i id="xp-bar"></i></div><span id="xp-label">0 / 8 XP</span></div>
+      <div id="wave-banner" class="wave-banner" role="status"></div>
+      <div id="boss-hud" class="boss-hud" hidden><span>THE HOLLOW KEEPER</span><div class="meter boss"><i id="boss-bar"></i></div></div>
+      <div class="sector-label" aria-hidden="true">THE OVERGROWTH <span>35.07 N / 119.04 E</span></div>
+      <div id="touch-controls" class="touch-controls"><div id="joystick" class="joystick" aria-label="Touch movement control"><div id="stick"></div><span>MOVE</span></div><button id="dash" class="dash-button" aria-label="Dash">↗<span>DASH</span></button></div>
+      <div class="dash-status" id="dash-status">SPACE <span>DASH READY</span></div>
+      <div id="overlay" class="overlay"></div>
+    </section>
+    <section class="loadout" aria-label="Current weapons"><div class="loadout-label">YOUR ARSENAL<span>AUTO-FIRE ENABLED</span></div><div id="weapon-slots" class="weapon-slots"></div><div class="run-score"><span>SCORE</span><strong id="score">00000</strong></div></section>
+    <footer><span><i></i> <span id="mission-status">Awaiting deployment</span></span><span class="desktop-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move <b>·</b> <kbd>SPACE</kbd> dash <b>·</b> <kbd>P</kbd> pause</span><span>HOLD OUT. POWER UP. GET HOME.</span></footer>
+    <div id="announcer" class="sr-only" aria-live="polite"></div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,21 @@
+# Local operating system files
+.DS_Store
+Thumbs.db
+
+# Local environment values; safe examples remain versioned
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Common dependencies and generated output; refine when the stack is selected
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+/dist/
+/build/
+/.next/
+/coverage/
+/artifacts/
+*.log

@@ -1,0 +1,17 @@
+{
+  "name": "neon-hollow",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "An original local single-player survival game.",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "node server.mjs",
+    "start": "node server.mjs",
+    "preview": "node server.mjs --production",
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check src/main.js && node --check src/engine.js && node --check src/render.js && node --check src/input.js && node --check src/data.js && node --check src/audio.js && node --check server.mjs",
+    "build": "node scripts/build.mjs",
+    "verify:build": "node scripts/verify-build.mjs"
+  }
+}
